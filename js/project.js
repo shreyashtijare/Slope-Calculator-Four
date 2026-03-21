@@ -36,15 +36,28 @@ loginBtn.style.display="block"
 
 }
 
-checkUser()
+async function checkUser(){
 
-loginBtn.onclick = ()=>{
-window.location.href="login.html"
+const { data:{ user } } = await supabase.auth.getUser()
+
+currentUser = user
+
+if(user){
+
+projectControls.style.display="flex"
+logoutBtn.style.display="block"
+loginBtn.style.display="none"
+
+loadProjects()
+
+}else{
+
+projectControls.style.display="none"
+logoutBtn.style.display="none"
+loginBtn.style.display="block"
+
 }
 
-logoutBtn.onclick = async ()=>{
-await supabase.auth.signOut()
-location.reload()
 }
 
 // ================= LOAD =================
