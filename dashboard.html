@@ -8,18 +8,21 @@
 
 <body>
 
-<div class="dashboard">
+<div class="topbar">
 
-<div class="sidebar">
-<h3>Projects</h3>
+<div class="menu-left">
 <button id="newProject">New Project</button>
-<div id="projectsList"></div>
+<select id="projectsList"></select>
+</div>
+
+<div class="menu-right">
+<button id="logoutBtn">Logout</button>
+</div>
+
 </div>
 
 <div class="main">
 <iframe src="index.html" id="appFrame"></iframe>
-</div>
-
 </div>
 
 <script type="module" src="js/projects.js"></script>
