@@ -1,71 +1,223 @@
-import { supabase } from './supabase-client.js'
-import { requireAuth, logout } from './auth.js'
+import { supabase } from "./supabase-client.js"
 
 const list = document.getElementById("projectsList")
 const newBtn = document.getElementById("newProject")
+
+const loginBtn = document.getElementById("loginBtn")
 const logoutBtn = document.getElementById("logoutBtn")
 
-// require login
-await requireAuth()
+const projectControls = document.getElementById("projectControls")
 
-// logout button
-logoutBtn.onclick = logout
+let currentUser = null
+let projects = []
 
-// load projects
+// ================= AUTH =================
+
+async function checkUser(){
+
+const { data:{ user } } = await supabase.auth.getUser()
+
+currentUser = user
+
+if(user){
+projectControls.style.display="flex"
+logoutBtn.style.display="block"
+loginBtn.style.display="none"
+loadProjects()
+}else{
+projectControls.style.display="none"
+logoutBtn.style.display="none"
+loginBtn.style.display="block"
+}
+
+}
+
+checkUser()
+
+loginBtn.onclick = ()=>{
+window.location.href="login.html"
+}
+
+logoutBtn.onclick = async ()=>{
+await supabase.auth.signOut()
+location.reload()
+}
+
+// ================= LOAD =================
+
 async function loadProjects(){
 
-const { data, error } = await supabase
-.from('projects')
-.select('*')
-.order('created_at',{ascending:false})
+const { data } = await supabase
+.from("projects")
+.select("*")
+.order("created_at",{ascending:false})
 
-if(error) console.error(error)
+projects = data || []
+
+renderDropdown()
+
+}
+
+// ================= RENDER =================
+
+function renderDropdown(){
 
 list.innerHTML=""
 
-data.forEach(p=>{
+projects.forEach(p=>{
+
 const option=document.createElement("option")
 option.value=p.id
 option.textContent=p.name
+
 list.appendChild(option)
+
 })
 
-// auto select first project
-if(data.length>0){
-list.value=data[0].id
-localStorage.setItem("project_id",data[0].id)
+// auto select first
+if(projects.length>0){
+list.value=projects[0].id
+localStorage.setItem("project_id",projects[0].id)
 }
 
 }
 
-// new project
-newBtn.onclick = async () => {
+// ================= NEW PROJECT =================
 
-const name = prompt("Project name")
+newBtn.onclick = ()=>{
+
+const input=document.createElement("input")
+input.className="project-input"
+input.placeholder="Project name..."
+
+list.parentNode.insertBefore(input,list)
+input.focus()
+
+input.onkeydown=async(e)=>{
+
+if(e.key==="Enter"){
+
+const name=input.value.trim()
 if(!name) return
 
-const { data:{user} } = await supabase.auth.getUser()
-
-const { error } = await supabase
+const { data, error } = await supabase
 .from("projects")
 .insert({
 name:name,
-user_id:user.id
+user_id:currentUser.id
+})
+.select()
+.single()
+
+if(!error){
+projects.unshift(data)
+input.remove()
+renderDropdown()
+list.value=data.id
+}
+
+}
+
+if(e.key==="Escape"){
+input.remove()
+}
+
+}
+
+}
+
+// ================= SWITCH =================
+
+list.onchange = ()=>{
+localStorage.setItem("project_id",list.value)
+}
+
+// ================= RENAME =================
+
+list.ondblclick = ()=>{
+
+const id=list.value
+const project=projects.find(p=>p.id===id)
+
+const input=document.createElement("input")
+input.className="project-input"
+input.value=project.name
+
+list.parentNode.insertBefore(input,list)
+input.focus()
+input.select()
+
+input.onkeydown=async(e)=>{
+
+if(e.key==="Enter"){
+
+const newName=input.value.trim()
+
+await supabase
+.from("projects")
+.update({name:newName})
+.eq("id",id)
+
+project.name=newName
+
+input.remove()
+renderDropdown()
+list.value=id
+
+}
+
+if(e.key==="Escape"){
+input.remove()
+}
+
+}
+
+}
+
+// ================= DELETE =================
+
+document.addEventListener("keydown",async(e)=>{
+
+if(e.key==="Delete" && document.activeElement===list){
+
+const id=list.value
+if(!confirm("Delete project?")) return
+
+await supabase
+.from("projects")
+.delete()
+.eq("id",id)
+
+projects = projects.filter(p=>p.id!==id)
+
+renderDropdown()
+
+}
+
 })
 
-if(error){
-console.error(error)
-alert("Error creating project")
-return
+// ================= DUPLICATE =================
+
+document.addEventListener("keydown",async(e)=>{
+
+if(e.ctrlKey && e.key==="d"){
+
+const id=list.value
+const project=projects.find(p=>p.id===id)
+
+const { data } = await supabase
+.from("projects")
+.insert({
+name:project.name+" copy",
+user_id:currentUser.id
+})
+.select()
+.single()
+
+projects.unshift(data)
+renderDropdown()
+list.value=data.id
+
 }
 
-loadProjects()
-}
-
-// switch project
-list.onchange = () => {
-const id = list.value
-localStorage.setItem("project_id",id)
-}
-
-loadProjects()
+})
