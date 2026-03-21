@@ -2,7 +2,15 @@ import { supabase } from './supabase-client.js'
 
 const list = document.getElementById("projectsList")
 const newBtn = document.getElementById("newProject")
+const logoutBtn = document.getElementById("logoutBtn")
 
+// logout
+logoutBtn.onclick = async ()=>{
+await supabase.auth.signOut()
+window.location.href="login.html"
+}
+
+// load projects
 async function loadProjects(){
 
 const { data } = await supabase
@@ -13,19 +21,23 @@ const { data } = await supabase
 list.innerHTML=""
 
 data.forEach(p=>{
-const div=document.createElement("div")
-div.textContent=p.name
-div.onclick=()=>openProject(p.id)
-list.appendChild(div)
+const option=document.createElement("option")
+option.value=p.id
+option.textContent=p.name
+list.appendChild(option)
 })
 
 }
 
-async function openProject(id){
+// switch project
+list.onchange=()=>{
+const id=list.value
 localStorage.setItem("project_id",id)
 }
 
+// new project
 newBtn.onclick=async()=>{
+
 const name=prompt("Project name")
 
 const { data:user } = await supabase.auth.getUser()
@@ -36,6 +48,7 @@ user_id:user.user.id
 })
 
 loadProjects()
+
 }
 
 loadProjects()
