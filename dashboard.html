@@ -10,19 +10,20 @@
 
 <div class="topbar">
 
-<div class="menu-left">
-<button id="newProject">New Project</button>
+<div class="menu-left" id="projectControls" style="display:none;">
+<button id="newProject">New</button>
 <select id="projectsList"></select>
 </div>
 
 <div class="menu-right">
-<button id="logoutBtn">Logout</button>
+<button id="loginBtn" style="display:none;">Sign In</button>
+<button id="logoutBtn" style="display:none;">Logout</button>
 </div>
 
 </div>
 
 <div class="main">
-<iframe src="index.html" id="appFrame"></iframe>
+<iframe src="index.html"></iframe>
 </div>
 
 <script type="module" src="js/projects.js"></script>
