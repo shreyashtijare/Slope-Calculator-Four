@@ -1,22 +1,25 @@
 import { supabase } from './supabase-client.js'
+import { requireAuth, logout } from './auth.js'
 
 const list = document.getElementById("projectsList")
 const newBtn = document.getElementById("newProject")
 const logoutBtn = document.getElementById("logoutBtn")
 
-// logout
-logoutBtn.onclick = async ()=>{
-await supabase.auth.signOut()
-window.location.href="login.html"
-}
+// require login
+await requireAuth()
+
+// logout button
+logoutBtn.onclick = logout
 
 // load projects
 async function loadProjects(){
 
-const { data } = await supabase
+const { data, error } = await supabase
 .from('projects')
 .select('*')
 .order('created_at',{ascending:false})
+
+if(error) console.error(error)
 
 list.innerHTML=""
 
@@ -27,28 +30,42 @@ option.textContent=p.name
 list.appendChild(option)
 })
 
+// auto select first project
+if(data.length>0){
+list.value=data[0].id
+localStorage.setItem("project_id",data[0].id)
 }
 
-// switch project
-list.onchange=()=>{
-const id=list.value
-localStorage.setItem("project_id",id)
 }
 
 // new project
-newBtn.onclick=async()=>{
+newBtn.onclick = async () => {
 
-const name=prompt("Project name")
+const name = prompt("Project name")
+if(!name) return
 
-const { data:user } = await supabase.auth.getUser()
+const { data:{user} } = await supabase.auth.getUser()
 
-await supabase.from("projects").insert({
+const { error } = await supabase
+.from("projects")
+.insert({
 name:name,
-user_id:user.user.id
+user_id:user.id
 })
 
-loadProjects()
+if(error){
+console.error(error)
+alert("Error creating project")
+return
+}
 
+loadProjects()
+}
+
+// switch project
+list.onchange = () => {
+const id = list.value
+localStorage.setItem("project_id",id)
 }
 
 loadProjects()
