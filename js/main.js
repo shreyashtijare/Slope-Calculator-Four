@@ -12,3 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   console.log('Application initialized!');
 });
+window.addEventListener("DOMContentLoaded", () => {
+setTimeout(()=>{
+const he = document.getElementById("he")
+if (he) he.focus()
+},200)
+})
