@@ -1,29 +1,20 @@
-import { supabase } from './supabase-client.js'
+import { supabase } from "./supabase-client.js"
 
-const email = document.getElementById("email")
-const password = document.getElementById("password")
-
-const loginBtn = document.getElementById("loginBtn")
-const signupBtn = document.getElementById("signupBtn")
-
-loginBtn.onclick = async () => {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.value,
-    password: password.value
-  })
-
-  if (!error) {
-    window.location.href = "dashboard.html"
-  }
+export async function getUser(){
+const { data } = await supabase.auth.getUser()
+return data.user
 }
 
-signupBtn.onclick = async () => {
-  const { error } = await supabase.auth.signUp({
-    email: email.value,
-    password: password.value
-  })
+export async function logout(){
+await supabase.auth.signOut()
+window.location.href="login.html"
+}
 
-  if (!error) {
-    window.location.href = "dashboard.html"
-  }
+// protect dashboard
+export async function requireAuth(){
+const user = await getUser()
+
+if(!user){
+window.location.href="login.html"
+}
 }
