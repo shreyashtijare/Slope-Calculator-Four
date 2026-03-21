@@ -1,3 +1,7 @@
+projectControls.style.display="none"
+logoutBtn.style.display="none"
+loginBtn.style.display="none"
+
 import { supabase } from "./supabase-client.js"
 
 const list = document.getElementById("projectsList")
