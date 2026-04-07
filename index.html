@@ -90,11 +90,16 @@
     <div class="card placeholder">
       <h2>Graphing Calculator</h2>
       <script src="/api/desmos"></script>
-      <div id="calculator"></div>
+      <div id="calculator" style="width: 450px; height: 400px;"></div>
       <script>
-      window.addEventListener("load", () => {
-      var elt = document.getElementById("calculator");
-      var calculator = Desmos.ScientificCalculator(elt);
+      window.addEventListener("load", function () {
+        var check = setInterval(function () {
+          if (window.Desmos) {
+             clearInterval(check);
+             var elt = document.getElementById('calculator');
+             var calculator = Desmos.ScientificCalculator(elt);
+          }
+        }, 50);
       });
       </script>
     </div>
